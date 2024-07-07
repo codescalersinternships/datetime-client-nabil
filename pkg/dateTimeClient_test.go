@@ -26,6 +26,15 @@ func TestGetCurrentDate(t *testing.T) {
 		assertDateStrings(t, resParsed, want)
 
 	})
+	// t.Run("verify timeout constraint", func(t *testing.T) {
+	// 	myClient := NewClient("http://localhost:8090", time.Duration(1)*time.Second)
+	// 	_, err := myClient.GetCurrentDate()
+	// 	assertNotError(t, err)
+	// 	time.Sleep(time.Duration(3) * time.Second)
+	// 	if err == nil {
+	// 		t.Errorf("expected timeout error but got nil")
+	// 	}
+	// })
 
 }
 
