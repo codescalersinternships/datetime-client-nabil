@@ -33,8 +33,14 @@ jobs:
     - name: Test
       run: | 
         git clone --branch development https://github.com/codescalersinternships/datetime-server-nabil.git
-        go run ./datetime-server-nabil/cmd/datetimehttp/main.go
+        cd datetime-server-nabil
+        docker build -t datetimeapphttp -f ./DockerFile-http .
+        docker run --name myhttpappname -d -p 8090:8090 datetimeapphttp
+        cd ../
         make test
+        docker stop myhttpappname
+        docker image rm datetimeapphttp -f
+        
 
     
     
