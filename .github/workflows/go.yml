@@ -32,7 +32,9 @@ jobs:
 
     - name: Test
       run: | 
-        git clone --branch development https://github.com/codescalersinternships/datetime-server-nabil.git & go run ./datetime-server-nabil/cmd/datetimehttp/main.go & make test
+        git clone --branch development https://github.com/codescalersinternships/datetime-server-nabil.git
+        go run ./datetime-server-nabil/cmd/datetimehttp/main.go
+        make test
 
     
     
