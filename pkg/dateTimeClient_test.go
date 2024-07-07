@@ -20,7 +20,7 @@ func TestGetCurrentDate(t *testing.T) {
 func assertNotError(t *testing.T, err error) {
 	t.Helper()
 	if err != nil {
-		t.Errorf("error is not nill error: %q", err)
+		t.Errorf("error isn't nill error: %q", err)
 	}
 }
 
