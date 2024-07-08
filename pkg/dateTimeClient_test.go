@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func TestGetCurrentDate(t *testing.T) {
+func TestGetCurrentDatewithMock(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(r.URL.Path)
 		if r.URL.Path == "/datetime" && r.Method == http.MethodGet {
@@ -23,14 +23,58 @@ func TestGetCurrentDate(t *testing.T) {
 		}
 	}))
 	defer server.Close()
+	tests := []struct {
+		name     string
+		baseURL  string
+		Response currDateRes
+		isError  bool
+	}{
+		{
+			name:     "test valid date case",
+			baseURL:  "http://localhost:8090",
+			Response: currDateRes{time.Now().Format("2006-01-02 15:04:05")},
+			isError:  false,
+		},
+		{
+			name:     "test valid date case",
+			baseURL:  server.URL,
+			Response: currDateRes{"2021-12-12 12:12:12"},
+			isError:  false,
+		},
+		{
+			name:     "invalid url",
+			baseURL:  server.URL + "/wrong",
+			Response: currDateRes{"2021-12-12 12:12:12"},
+			isError:  true,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			myClient := NewClient(test.baseURL, time.Duration(1)*time.Second)
+			got, err := myClient.GetCurrentDate()
+			if test.isError {
+				assertError(t, err)
+				return
+			} else {
+				assertNotError(t, err)
+			}
+			want := test.Response
+			assertDate(t, got, want)
+		})
+	}
 
-	t.Run("test valid date case", func(t *testing.T) {
-		myClient := NewClient(server.URL, time.Duration(1)*time.Second)
+	t.Run("test json date case", func(t *testing.T) {
+		myClient := NewClient("http://localhost:8090", time.Duration(1)*time.Second)
 		got, err := myClient.GetCurrentDate()
 		assertNotError(t, err)
-		want := currDateRes{"2021-12-12 12:12:12"}
-		assertDate(t, got, want)
+		var resParsed string
+		err = json.Unmarshal([]byte(strconv.Quote(got.Date)), &resParsed)
+		assertNotError(t, err)
+		want := time.Now().Format("2006-01-02 15:04:05")
+		assertDateStrings(t, resParsed, want)
+
 	})
+
 	t.Run("test json date case", func(t *testing.T) {
 		myClient := NewClient(server.URL, time.Duration(1)*time.Second)
 		got, err := myClient.GetCurrentDate()
@@ -42,21 +86,6 @@ func TestGetCurrentDate(t *testing.T) {
 		assertDateStrings(t, resParsed, want)
 
 	})
-	t.Run("invalid url", func(t *testing.T) {
-		myClient := NewClient(server.URL+"/wrong", time.Duration(1)*time.Second)
-		_, err := myClient.GetCurrentDate()
-		assertError(t, err)
-
-	})
-	// t.Run("verify timeout constraint", func(t *testing.T) {
-	// 	myClient := NewClient("http://localhost:8090", time.Duration(1)*time.Second)
-	// 	_, err := myClient.GetCurrentDate()
-	// 	assertNotError(t, err)
-	// 	time.Sleep(time.Duration(3) * time.Second)
-	// 	if err == nil {
-	// 		t.Errorf("expected timeout error but got nil")
-	// 	}
-	// })
 
 }
 
