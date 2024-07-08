@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"time"
 
 	backoff "github.com/cenkalti/backoff/v4"
@@ -22,6 +23,20 @@ func NewClient(url string, timeout time.Duration) *Client {
 		},
 	}
 	return client
+}
+
+func NewClientUsingEnv(key string, timeout time.Duration) (*Client, error) {
+	url, exist := os.LookupEnv(key)
+	if !exist {
+		return &Client{}, fmt.Errorf("key isn't found")
+	}
+	client := &Client{
+		url: url,
+		client: &http.Client{
+			Timeout: timeout,
+		},
+	}
+	return client, nil
 }
 
 type currDateRes struct {
