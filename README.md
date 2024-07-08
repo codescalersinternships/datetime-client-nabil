@@ -9,7 +9,7 @@ To install the project use:
 go get github.com/codescalersinternships/datetime-client-nabil
 ```
 
-# Usage
+## Usage
 
 1. Import the Package
 ```golang
