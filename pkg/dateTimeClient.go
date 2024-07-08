@@ -27,7 +27,7 @@ type currDateRes struct {
 }
 
 func (c *Client) GetCurrentDate() (currDateRes, error) {
-	req, err := http.NewRequest(http.MethodGet, c.url, nil)
+	req, err := http.NewRequest(http.MethodGet, c.url+"/datetime", nil)
 	req.Header.Add("Accept", "text/plain;charset=UTF-8, application/json")
 
 	if err != nil {

@@ -25,14 +25,14 @@ func TestGetCurrentDate(t *testing.T) {
 	defer server.Close()
 
 	t.Run("test valid date case", func(t *testing.T) {
-		myClient := NewClient(server.URL+"/datetime", time.Duration(1)*time.Second)
+		myClient := NewClient(server.URL, time.Duration(1)*time.Second)
 		got, err := myClient.GetCurrentDate()
 		assertNotError(t, err)
 		want := currDateRes{"2021-12-12 12:12:12"}
 		assertDate(t, got, want)
 	})
 	t.Run("test json date case", func(t *testing.T) {
-		myClient := NewClient(server.URL+"/datetime", time.Duration(1)*time.Second)
+		myClient := NewClient(server.URL, time.Duration(1)*time.Second)
 		got, err := myClient.GetCurrentDate()
 		assertNotError(t, err)
 		var resParsed string
@@ -43,7 +43,7 @@ func TestGetCurrentDate(t *testing.T) {
 
 	})
 	t.Run("invalid url", func(t *testing.T) {
-		myClient := NewClient(server.URL, time.Duration(1)*time.Second)
+		myClient := NewClient(server.URL+"/wrong", time.Duration(1)*time.Second)
 		_, err := myClient.GetCurrentDate()
 		assertError(t, err)
 
