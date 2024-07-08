@@ -5,6 +5,8 @@ import (
 	"io"
 	"net/http"
 	"time"
+
+	backoff "github.com/cenkalti/backoff/v4"
 )
 
 type Client struct {
@@ -27,27 +29,33 @@ type currDateRes struct {
 }
 
 func (c *Client) GetCurrentDate() (currDateRes, error) {
-	req, err := http.NewRequest(http.MethodGet, c.url+"/datetime", nil)
-	req.Header.Add("Accept", "text/plain;charset=UTF-8, application/json")
+	operation := func() (currDateRes, error) {
+		req, err := http.NewRequest(http.MethodGet, c.url+"/datetime", nil)
+		req.Header.Add("Accept", "text/plain;charset=UTF-8, application/json")
 
+		if err != nil {
+			return currDateRes{}, err
+		}
+		resp, err := c.client.Do(req)
+		if err != nil {
+			return currDateRes{}, err
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			return currDateRes{}, fmt.Errorf("unexpected status code")
+		}
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return currDateRes{}, err
+		}
+
+		return currDateRes{string(body)}, nil
+	}
+
+	resp, err := backoff.RetryWithData(operation, backoff.WithMaxRetries(backoff.NewExponentialBackOff(), 3))
 	if err != nil {
 		return currDateRes{}, err
 	}
-
-	resp, err := c.client.Do(req)
-	if err != nil {
-		return currDateRes{}, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return currDateRes{}, fmt.Errorf("unexpected status code")
-	}
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return currDateRes{}, err
-	}
-
-	return currDateRes{string(body)}, nil
+	return resp, nil
 
 }
