@@ -13,7 +13,7 @@ go get github.com/codescalersinternships/datetime-client-nabil
 
 1. Import the Package
 ```golang
-import Client "github.com/codescalersinternships/datetime-client-nabil"
+import Client "github.com/codescalersinternships/datetime-client-nabil/pkg"
 ```
 
 Using url string
