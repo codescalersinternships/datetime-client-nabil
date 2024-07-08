@@ -10,11 +10,15 @@ import (
 	backoff "github.com/cenkalti/backoff/v4"
 )
 
+// Client is the class used to make requests to the dateTime-server.
 type Client struct {
 	url    string
 	client *http.Client
 }
 
+// NewClient creates a server to the Client to use.
+// input is the url of site hitting to.
+// return instance of the client
 func NewClient(url string, timeout time.Duration) *Client {
 	client := &Client{
 		url: url,
@@ -25,10 +29,13 @@ func NewClient(url string, timeout time.Duration) *Client {
 	return client
 }
 
+// NewClient creates a server to the Client to use.
+// input is the key in Enviroment variables to get url of site hitting to.
+// return instance of the client and err default is nil
 func NewClientUsingEnv(key string, timeout time.Duration) (*Client, error) {
 	url, exist := os.LookupEnv(key)
 	if !exist {
-		return &Client{}, fmt.Errorf("key isn't found")
+		return &Client{}, fmt.Errorf("key isn't found %v", key)
 	}
 	client := &Client{
 		url: url,
@@ -43,6 +50,7 @@ type currDateRes struct {
 	Date string `json:"date"`
 }
 
+// GetDateTime makes a request to the dateTime-server to get the current date and time.
 func (c *Client) GetCurrentDate() (currDateRes, error) {
 	operation := func() (currDateRes, error) {
 		req, err := http.NewRequest(http.MethodGet, c.url+"/datetime", nil)
