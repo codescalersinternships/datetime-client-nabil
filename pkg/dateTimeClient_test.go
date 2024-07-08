@@ -2,28 +2,50 @@ package datetimeclient
 
 import (
 	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"strconv"
 	"testing"
 	"time"
 )
 
 func TestGetCurrentDate(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println(r.URL.Path)
+		if r.URL.Path == "/datetime" && r.Method == http.MethodGet {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			_, err := w.Write([]byte("2021-12-12 12:12:12"))
+			assertNotError(t, err)
+		} else {
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
 	t.Run("test valid date case", func(t *testing.T) {
-		myClient := NewClient("http://localhost:8090", time.Duration(1)*time.Second)
+		myClient := NewClient(server.URL+"/datetime", time.Duration(1)*time.Second)
 		got, err := myClient.GetCurrentDate()
 		assertNotError(t, err)
-		want := currDateRes{time.Now().Format("2006-01-02 15:04:05")}
+		want := currDateRes{"2021-12-12 12:12:12"}
 		assertDate(t, got, want)
 	})
 	t.Run("test json date case", func(t *testing.T) {
-		myClient := NewClient("http://localhost:8090", time.Duration(1)*time.Second)
+		myClient := NewClient(server.URL+"/datetime", time.Duration(1)*time.Second)
 		got, err := myClient.GetCurrentDate()
 		assertNotError(t, err)
 		var resParsed string
 		err = json.Unmarshal([]byte(strconv.Quote(got.Date)), &resParsed)
 		assertNotError(t, err)
-		want := time.Now().Format("2006-01-02 15:04:05")
+		want := "2021-12-12 12:12:12"
 		assertDateStrings(t, resParsed, want)
+
+	})
+	t.Run("invalid url", func(t *testing.T) {
+		myClient := NewClient(server.URL, time.Duration(1)*time.Second)
+		_, err := myClient.GetCurrentDate()
+		assertError(t, err)
 
 	})
 	// t.Run("verify timeout constraint", func(t *testing.T) {
@@ -42,6 +64,13 @@ func assertNotError(t *testing.T, err error) {
 	t.Helper()
 	if err != nil {
 		t.Errorf("error isn't nill error: %q", err)
+	}
+}
+
+func assertError(t *testing.T, err error) {
+	t.Helper()
+	if err == nil {
+		t.Errorf("error is nill error: %q", err)
 	}
 }
 

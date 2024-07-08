@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	myClient := datetimeclient.NewClient("http://localhost:8090", time.Duration(1)*time.Second)
+	myClient := datetimeclient.NewClient("http://localhost:8090/datetime", time.Duration(1)*time.Second)
 
 	data, err := myClient.GetCurrentDate()
 
